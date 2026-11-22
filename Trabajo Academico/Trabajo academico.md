@@ -428,10 +428,6 @@ De esta manera, un mecanismo utilizado en seguridad informática puede analizars
 
 Esta conexión constituye el fundamento conceptual de **SUMA Lab v3**, el simulador pedagógico desarrollado en el proyecto.
 
----
-
-> **Nota sobre las referencias:** Los números entre corchetes, como [1] o [6], conservan la numeración utilizada en el informe académico. Para que funcionen como referencias dentro del repositorio, deben corresponder a la misma bibliografía que se incluye en la sección de referencias del README o en un archivo independiente.
-
 ## IV. Objetivos
 
 ### 4.1. Objetivo general

@@ -1,3 +1,13 @@
+# Resumen
+
+Cuando una dirección IP recibe varios bloqueos temporales, la duración de cada episodio y el tiempo total acumulado representan cantidades distintas. El problema pedagógico consiste en explicar cómo se relacionan ambas cantidades y por qué una fórmula permite calcular el acumulado para cualquier número de episodios. El objetivo del trabajo fue diseñar un simulador web que permita a estudiantes de Ingeniería Informática representar este proceso mediante una sumatoria y demostrar su identidad por inducción matemática.
+
+Se implementó SUMA Lab v3, un simulador que compara la duración fija, la duplicación sucesiva y la duplicación con un máximo por episodio. Un reproductor permite avanzar bloqueo por bloqueo y relacionar cada término con el acumulado de la tabla y la gráfica. La actividad de inducción enlaza una predicción numérica con la elección del término que debe incorporarse en el paso inductivo. Los resultados del modelo se contrastaron con cálculos independientes en 720 configuraciones.
+
+Para cuatro episodios con una duración inicial de un minuto y un máximo de cinco, los tiempos acumulados fueron 4, 15 y 12 minutos, respectivamente. La diferencia entre las dos últimas políticas se explica por el cuarto sumando, que pasa de ocho a cinco minutos al aplicarse el máximo. La demostración establece que, cuando cada duración duplica la anterior, el acumulado tras $n$ episodios es $b(2^n-1)$, donde $b$ representa la duración inicial.
+
+**Palabras clave:** inducción matemática, sumatoria geométrica, simulación pedagógica, bloqueo temporal de direcciones IP.
+
 # IV. Objetivos
 
 ## 4.1. Objetivo general
@@ -12,7 +22,7 @@ sumatoria y explicar por qué, en la política de duplicación sin tope,
 el tiempo acumulado después de $n$ episodios es $b(2^n-1)$, donde $b$
 es la duración inicial.
 
-## 4.2. Objetivos específicos
+# 4.2. Objetivos específicos
 
 1. **Modelar y comparar las tres políticas de bloqueo.** Representar la
    duración de cada episodio y calcular el tiempo acumulado bajo las tres
@@ -250,3 +260,17 @@ La ejecución reprodujo los resultados registrados en `tests/verification-result
 El barrido automatizado completó **720 ejecuciones** y generó **11 160 filas**. En cada fila se contrastaron los tres acumulados con valores calculados de forma independiente, lo que produjo **33 480 comparaciones sin discrepancias**. Las pruebas respaldan el cálculo del programa en los escenarios evaluados. La demostración por inducción justifica la identidad geométrica para cualquier número entero positivo de episodios.
 
 Para conservar la evidencia de un escenario desde la interfaz, se selecciona el último episodio del reproductor y se abre **Resultados y pruebas**. El archivo **CSV** guarda las filas de la tabla y el **SVG** conserva la gráfica hasta el episodio seleccionado. Al ejecutar la verificación antes de exportar el **JSON**, también quedan registrados los resultados de las pruebas.
+
+# IX. Conclusiones
+
+## 9.1. Conclusiones sobre el modelado de las políticas de bloqueo
+
+El simulador permitió comparar la duración de cada bloqueo y el tiempo acumulado al aplicar las tres políticas con las mismas entradas. Con una duración inicial de 1 minuto, 4 episodios y un máximo de 5 minutos por episodio, se obtuvieron 4 minutos acumulados con la política fija, 15 con la progresiva y 12 con la progresiva con tope. La diferencia de 3 minutos entre las dos últimas se explica por el cuarto bloqueo: la duplicación produce 8 minutos y el tope reduce su duración a 5. Al cambiar el máximo a 4 minutos, se observó que el tercer episodio alcanzó exactamente ese valor y que el primer recorte ocurrió en el cuarto episodio.
+
+## 9.2. Conclusiones sobre la demostración por inducción matemática
+
+La demostración por inducción estableció que, para una duración inicial $b>0$ y cualquier número entero de episodios $n\geq 1$, el tiempo acumulado bajo duplicación sin tope es $T_p(n)=b(2^n-1)$. El caso base corresponde al primer bloqueo, cuya duración es $b$. En el paso inductivo, el episodio $k+1$ añade $b\,2^k$ minutos al acumulado de los primeros $k$ episodios. La actividad guiada conecta este razonamiento con una acción que el estudiante puede seguir en la tabla: identificar el nuevo sumando y observar cómo cambia el total al avanzar un episodio. En la política con tope, a partir del primer recorte, cada bloqueo posterior aporta $M$ minutos al acumulado.
+
+## 9.3. Conclusiones sobre la verificación del simulador
+
+Los tiempos acumulados de los siete escenarios válidos coincidieron con los resultados esperados y el simulador rechazó las seis entradas inválidas. La verificación sistemática comprendió 720 ejecuciones, correspondientes a 690 combinaciones distintas de duración inicial, número de episodios y máximo por episodio. Las 33 480 comparaciones de tiempos acumulados coincidieron con los valores calculados de forma independiente. Estos resultados respaldan la implementación de las tres políticas en los casos examinados. Para determinar en qué medida la actividad guiada mejora la comprensión de la inducción matemática, se requiere una evaluación posterior con estudiantes.

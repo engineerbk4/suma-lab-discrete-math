@@ -1,421 +1,213 @@
-# Resumen
+# VII. Resultados y análisis.
 
-Cuando una dirección IP recibe varios bloqueos temporales, la duración de cada episodio y el tiempo total acumulado representan cantidades distintas. El problema pedagógico consiste en explicar cómo se relacionan ambas cantidades y por qué una fórmula permite calcular el acumulado para cualquier número de episodios. El objetivo del trabajo fue diseñar un simulador web que permita a estudiantes de Ingeniería Informática representar este proceso mediante una sumatoria y demostrar su identidad por inducción matemática.
+Los resultados corresponden a SUMA Lab v3. Se examinaron las duraciones individuales, los acumulados y la coincidencia entre la suma directa y las fórmulas del modelo. Los archivos del anexo permiten reproducir tanto el escenario principal como la verificación automatizada.
 
-Se implementó SUMA Lab v3, un simulador que compara la duración fija, la duplicación sucesiva y la duplicación con un máximo por episodio. Un reproductor permite avanzar bloqueo por bloqueo y relacionar cada término con el acumulado de la tabla y la gráfica. La actividad de inducción enlaza una predicción numérica con la elección del término que debe incorporarse en el paso inductivo. Los resultados del modelo se contrastaron con cálculos independientes en 720 configuraciones.
+## 7.1. Condiciones y parámetros de los escenarios analizados.
 
-Para cuatro episodios con una duración inicial de un minuto y un máximo de cinco, los tiempos acumulados fueron 4, 15 y 12 minutos, respectivamente. La diferencia entre las dos últimas políticas se explica por el cuarto sumando, que pasa de ocho a cinco minutos al aplicarse el máximo. La demostración establece que, cuando cada duración duplica la anterior, el acumulado tras $n$ episodios es $b(2^n-1)$, donde $b$ representa la duración inicial.
+La comparación de las tres políticas mostró que una misma cantidad de bloqueos puede generar tiempos acumulados diferentes. En el escenario principal, con duración inicial de 1 minuto, cuatro episodios y máximo de 5 minutos por episodio, los totales fueron 4, 15 y 12 minutos para las políticas fija, por duplicación y con tope. La diferencia de 3 minutos entre las dos últimas se produjo en el cuarto sumando.
 
-**Palabras clave:** inducción matemática, sumatoria geométrica, simulación pedagógica, bloqueo temporal de direcciones IP.
+***Tabla II. Entradas del escenario principal y dominio admitido***
 
-# IV. Objetivos
+| **Entrada**           | **Valor principal** | **Condición de la interfaz** |
+|-----------------------|---------------------|------------------------------|
+| Duración inicial b    | 1 min               | 0,01 a 10 000 min            |
+| Número de episodios n | 4                   | Entero de 1 a 30             |
+| Máximo por episodio M | 5 min               | b ≤ M ≤ 10 000 min           |
 
-## 4.1. Objetivo general
+Se examinaron además casos con un solo episodio, máximo igual a la duración inicial, valores decimales, máximo alcanzado exactamente y máximo no alcanzado. El caso con las entradas máximas permitió comprobar el límite numérico de la interfaz. Una exploración adicional con b = 1, n = 30 y M = 16 se utilizó para analizar el crecimiento de los acumulados.
 
-Diseñar un simulador web pedagógico dirigido a estudiantes de Ingeniería
-Informática que permita comparar el tiempo acumulado de bloqueo de una
-dirección IP bajo tres políticas temporales: duración fija, duplicación
-progresiva y duplicación con un máximo por episodio. Mediante tablas,
-gráficas y una demostración guiada por inducción matemática, el estudiante
-podrá relacionar la duración de cada episodio con un término de la
-sumatoria y explicar por qué, en la política de duplicación sin tope,
-el tiempo acumulado después de $n$ episodios es $b(2^n-1)$, donde $b$
-es la duración inicial.
+## 7.2. Resultados de la duración de cada episodio de bloqueo.
 
-# 4.2. Objetivos específicos
+La tabla III muestra qué término aporta cada episodio al escenario principal. La regla fija conserva un minuto; la duplicación genera 1, 2, 4 y 8 minutos. Con un máximo de 5 minutos, las primeras tres duraciones se mantienen y la cuarta se recorta de 8 a 5.
 
-1. **Modelar y comparar las tres políticas de bloqueo.** Representar la
-   duración de cada episodio y calcular el tiempo acumulado bajo las tres
-   políticas, utilizando la misma duración inicial y el mismo número de
-   episodios. En la política con tope, distinguir el primer episodio que
-   alcanza la duración máxima del primero en que el límite reduce la
-   duración que habría producido la duplicación.
+***Tabla III. Duraciones individuales del escenario principal en minutos***
 
-2. **Demostrar por inducción matemática la identidad de la sumatoria
-   geométrica.** Guiar al estudiante en la demostración de la igualdad
-   $\sum_{i=1}^{n} b\,2^{i-1}=b(2^n-1)$ para todo entero $n\geq 1$.
-   Relacionar el caso base con el primer bloqueo, que dura $b$ minutos,
-   y el paso inductivo con la incorporación del episodio $k+1$, que añade
-   $b\,2^k$ minutos al tiempo acumulado tras $k$ episodios.
+| **Episodio i** | **Fija** | **Duplicación** | **Con tope** |
+|----------------|----------|-----------------|--------------|
+| 1              | 1        | 1               | 1            |
+| 2              | 1        | 2               | 2            |
+| 3              | 1        | 4               | 4            |
+| 4              | 1        | 8               | 5            |
 
-3. **Verificar los resultados del simulador.** Contrastar las duraciones
-   individuales y los tiempos acumulados con valores obtenidos de forma
-   independiente a partir del modelo matemático. Incluir un solo episodio,
-   varios episodios sin recorte y un escenario en el que el máximo reduzca
-   la duración de un bloqueo. Para la política de duplicación sin tope,
-   comprobar que la suma directa de las duraciones coincida con el valor
-   calculado mediante la identidad demostrada.
-# V. Metodología y diseño
+El máximo se aplica al término individual y no a la suma. Por ello, una política puede respetar M = 5 minutos en todos sus bloqueos y acumular más de cinco minutos en total. También se distinguió entre alcanzar el máximo y recortar una duración: con M = 4, el tercer episodio alcanza el máximo sin alterarse, mientras que el primer recorte se produce en el cuarto episodio.
 
-## 5.1. Enfoque y alcance de la simulación
+## 7.3. Comparación del tiempo acumulado mediante tablas y gráficas.
 
-SUMA Lab v3 emplea una simulación discreta y determinista dirigida a estudiantes de Ingeniería Informática. Cada episodio representa un bloqueo temporal de una dirección IP ficticia. El tiempo acumulado se obtiene sumando los minutos de bloqueo de cada episodio. Por ejemplo, si una dirección permanece bloqueada durante dos minutos en el primer episodio y cuatro en el segundo, el acumulado es de seis minutos, independientemente del intervalo transcurrido entre ambos.
+Cada acumulado se obtuvo añadiendo la duración actual al total de la fila anterior. En los tres primeros episodios, la duplicación y la política limitada coinciden en 1, 3 y 7 minutos. La separación aparece en el cuarto episodio, cuando se añaden 8 y 5 minutos, respectivamente.
 
-El trabajo se organizó en tres etapas. Primero se formularon las reglas de duración de las tres políticas. Luego se diseñó una actividad en la que el estudiante relaciona cada episodio con un término de la sumatoria. Finalmente, se contrastaron los acumulados calculados por el simulador con los resultados esperados del modelo matemático.
+***Tabla IV. Tiempos acumulados del escenario principal en minutos***
 
-## 5.2. Datos de entrada y condiciones de comparación
+| **Episodios** | **Fija** | **Duplicación** | **Con tope** |
+|---------------|----------|-----------------|--------------|
+| 1             | 1        | 1               | 1            |
+| 2             | 2        | 3               | 3            |
+| 3             | 3        | 7               | 7            |
+| 4             | 4        | 15              | 12           |
 
-| Símbolo | Dato de entrada | Valores admitidos |
-| --- | --- | --- |
-| $b$ | Duración inicial del bloqueo | De 0,01 a 10 000 minutos, con hasta dos decimales |
-| $n$ | Número de episodios | Entero entre 1 y 30 |
-| $M$ | Duración máxima por episodio en la política con tope | De $b$ a 10 000 minutos, con hasta dos decimales |
+![Figura 1. Acumulados del escenario b = 1, n = 4 y M = 5. Elaboración a partir de las filas del simulador.](imagenes/image6.png)
 
-Las tres políticas se comparan con la misma duración inicial y el mismo número de episodios. De esta manera, las diferencias observadas en la tabla y la gráfica se explican por la regla de duración aplicada. El parámetro $M$ interviene únicamente en la política con tope.
+***Figura 1. Acumulados del escenario b = 1, n = 4 y M = 5. Elaboración a partir de las filas del simulador.***
 
-El simulador acepta coma o punto decimal y convierte las duraciones a centésimas enteras de minuto antes de operar. Así, una entrada de `0,50` minutos se representa internamente como `50` centésimas. Los resultados se presentan al estudiante en minutos.
+En este caso, el tope reduce el acumulado de 15 a 12 minutos: una diferencia de 3 minutos, equivalente al 20 % del total progresivo sin límite. El porcentaje describe solamente esta comparación de tiempos. No representa una reducción de ataques ni una medida de eficacia de seguridad.
 
-## 5.3. Modelo matemático de las políticas de bloqueo
+Para M ≥ b, cada término limitado es al menos b y no supera el término geométrico. En consecuencia, los resultados satisfacen nb ≤ Tₘ(n) ≤ Tₚ(n). Además, Tₘ(n) ≤ nM, porque ninguno de los n bloqueos limitados dura más de M minutos.
 
-Sea $d_i$ la duración del episodio $i$. Después de $n$ episodios, el tiempo acumulado es la suma de sus duraciones:
+## 7.4. Contraste de los resultados con la identidad de sumatoria.
+
+La suma progresiva del escenario principal fue 1 + 2 + 4 + 8 = 15. La expresión cerrada produjo el mismo resultado:
 
 $$
-T(n)=\sum_{i=1}^{n}d_i
+T_p(4) = 1(2^{4} - 1) = 15\,\mathrm{min}
 $$
 
-**Tabla I. Duración individual y tiempo acumulado según la política de bloqueo**
-
-| Política | Duración del episodio $i$ | Tiempo acumulado tras $n$ episodios |
-| --- | --- | --- |
-| Fija | $d_i=b$ | $T_f(n)=nb$ |
-| Progresiva por duplicación | $d_i=b\,2^{i-1}$ | $T_p(n)=b(2^n-1)$ |
-| Progresiva con tope | $d_i=\min(b\,2^{i-1},M)$ | $T_M(n)=\sum_{i=1}^{n}\min(b\,2^{i-1},M)$ |
-
-En la política progresiva, el exponente $i-1$ indica cuántas duplicaciones han ocurrido desde el primer bloqueo. Por eso, las primeras duraciones son $b$, $2b$, $4b$ y $8b$.
-
-En la política limitada, el máximo se aplica a cada episodio antes de incorporarlo a la suma. Por ejemplo, con $b=1$ y $M=4$, las duraciones son 1, 2, 4 y 4 minutos. El tercer episodio **alcanza el máximo** exactamente. El cuarto es el primero en que **se recorta la duración**, porque le habrían correspondido 8 minutos. El acumulado llega a 11 minutos aunque cada bloqueo individual dura como máximo 4.
-
-## 5.4. Diseño del algoritmo y herramientas elegidas
-
-El simulador utiliza HTML para organizar las vistas, CSS para su presentación y JavaScript para calcular y mostrar los resultados en el navegador [12]. La versión editable separa la interfaz (`index.html` y `style.css`), el modelo matemático (`model.mjs`) y la interacción con el estudiante (`app.mjs`). Así, las pruebas pueden ejecutarse sobre el mismo módulo de cálculo que utiliza la interfaz. Para el uso en clase, `Simulador_EDI.html` reúne los componentes en un archivo que se abre sin conexión.
-
-El algoritmo guarda una fila por episodio. Cada fila contiene las tres duraciones individuales y sus respectivos acumulados. Estos mismos datos alimentan la tabla, la gráfica y el reproductor de episodios.
-
-```text
-INICIO
-  Leer la duración inicial b, el número de episodios n y el máximo M
-  Validar los rangos y la precisión indicados en el apartado 5.2
-  Si alguna entrada es inválida:
-      Mostrar el error y terminar el cálculo actual
-
-  Convertir b y M a centésimas enteras de minuto
-  TotalFijo ← 0
-  TotalProgresivo ← 0
-  TotalConTope ← 0
-
-  Para i desde 1 hasta n:
-      Fija ← b
-      Progresiva ← b × 2^(i − 1)
-      ConTope ← mínimo(Progresiva, M)
-
-      TotalFijo ← TotalFijo + Fija
-      TotalProgresivo ← TotalProgresivo + Progresiva
-      TotalConTope ← TotalConTope + ConTope
-
-      Guardar i, las tres duraciones y los tres acumulados
-  FinPara
-
-  TotalTeórico ← b × (2^n − 1)
-  Comparar TotalProgresivo con TotalTeórico
-  Identificar, si existe, el primer episodio con ConTope = M
-  Identificar, si existe, el primer episodio con Progresiva > M
-  Mostrar la tabla en minutos y la gráfica hasta el episodio seleccionado
-FIN
-```
-
-## 5.5. Diseño de la actividad pedagógica
-
-En «Empieza aquí», el estudiante observa siete bloqueos sucesivos con una duración inicial de un minuto. El séptimo bloqueo dura 64 minutos y el tiempo acumulado llega a 127 minutos. La actividad comienza con esta distinción porque el paso inductivo exige reconocer qué cantidad ya está acumulada y qué término se incorpora a continuación.
-
-En «Inducción guiada» se trabaja con $b=1$, $n=4$ y $M=5$. Después de los tres primeros episodios, las dos políticas progresivas acumulan $1+2+4=7$ minutos. Antes de mostrar el cuarto episodio, se pide al estudiante predecir cuánto se añadirá. Sin tope se añaden 8 minutos y el total llega a 15. Con tope se añaden 5 minutos y el total llega a 12.
-
-A partir de esa predicción se construye la demostración de la identidad de la política progresiva sin tope:
-
-1. **Caso base.** Para $n=1$, el único bloqueo dura $b$ minutos. La fórmula produce el mismo valor: $T_p(1)=b(2^1-1)=b$.
-2. **Hipótesis inductiva.** Para un entero arbitrario $k\geq 1$, se supone que los primeros $k$ episodios acumulan $T_p(k)=b(2^k-1)$.
-3. **Paso inductivo.** El episodio $k+1$ aporta $b\,2^k$ minutos. Al añadirlo al acumulado anterior se obtiene:
+El contraste numérico permite revisar el cálculo de un caso. La validez para cualquier entero positivo se sustenta en la inducción matemática \[6\], \[7\]. En el caso base, Tₚ(1) = b = b(2¹ − 1). Si se supone que para un entero arbitrario k ≥ 1 se cumple Tₚ(k) = b(2ᵏ − 1), el siguiente bloqueo aporta b·2ᵏ. Entonces:
 
 $$
-T_p(k+1)=b(2^k-1)+b\,2^k=b(2^{k+1}-1)
+T_p(k + 1) = b(2^{k} - 1) + b \cdot 2^{k}
 $$
 
-Por inducción matemática, la identidad se cumple para todo entero $n\geq 1$. La actividad pide al estudiante elegir el nuevo sumando y le ofrece retroalimentación sobre su elección, en línea con la participación activa en la visualización de programas descrita por Sorva, Karavirta y Malmi [13].
-
-## 5.6. Diseño de la verificación
-
-La verificación comprueba que el programa ejecute las reglas del modelo, siguiendo la distinción metodológica de Sargent [14]. Se seleccionaron casos que permiten identificar errores concretos: un solo episodio para revisar la inicialización, un máximo igual a la duración inicial, un máximo que recorta un bloqueo y una duración decimal. También se probaron entradas inválidas, como una cantidad fraccionaria de episodios o un máximo inferior a la duración inicial.
-
-El verificador combina cuatro duraciones iniciales, seis factores para calcular el máximo y los treinta valores admitidos de $n$. El barrido comprende **720 ejecuciones, 11 160 filas y 33 480 comparaciones**, una por política en cada fila. El criterio de aceptación es la coincidencia exacta en centésimas de minuto.
-
-Para el episodio $i$, los valores de referencia son $bi$ en la política fija y $b(2^i-1)$ en la progresiva. Para la política con tope, $q$ representa la cantidad de episodios, entre los primeros $i$, cuya duración progresiva es menor o igual que $M$. Los primeros $q$ términos conservan su duración geométrica y cada uno de los $i-q$ restantes aporta $M$. Por tanto, el acumulado esperado es:
-
 $$
-T_M(i)=b(2^q-1)+(i-q)M
+= b(2\cdot 2^{k} - 1) = b(2^{k+1} - 1)
 $$
 
-El verificador evalúa estas expresiones con enteros `BigInt` y las contrasta con la suma obtenida fila por fila. El resultado permite evaluar la corrección de los cálculos. Determinar cuánto aprenden los estudiantes al usar el simulador requeriría una evaluación con participantes.
-# VI. Implementación o simulación
+El caso base y el paso para un k arbitrario justifican Tₚ(n) = b(2ⁿ − 1) para todo entero n ≥ 1. En el programa, esta incorporación de un nuevo término corresponde a la actualización del acumulador progresivo. La interfaz guía la elección de b·2ᵏ y explica por qué el acumulado anterior o una potencia con una duplicación adicional no son el término que debe añadirse.
 
-## 6.1. Arquitectura del simulador
-
-SUMA Lab v3 representa los bloqueos temporales sucesivos de una dirección IP ficticia. El estudiante introduce la duración inicial del bloqueo ($b$), el número de episodios ($n$) y la duración máxima por episodio ($M$). A partir de esas entradas, el simulador calcula y compara tres políticas: duración fija, duplicación progresiva y duplicación con tope.
-
-La versión editable distribuye el trabajo entre dos módulos. `model.mjs` valida las entradas, convierte las duraciones a centésimas de minuto y calcula las filas de resultados. `app.mjs` utiliza esas mismas filas para construir la tabla, actualizar las tarjetas y reproducir la gráfica episodio por episodio. Esta organización permite probar las operaciones matemáticas independientemente de la interfaz.
-
-**Esquema VI.1. Recorrido de los datos desde el formulario hasta las salidas de SUMA Lab v3**
-
-```mermaid
-flowchart TD
-    A["Formulario: duración inicial, episodios y máximo"] --> B["Validar las entradas"]
-    B -->|Datos inválidos| C["Mostrar el error en el formulario"]
-    B -->|Datos válidos| D["Calcular las tres duraciones y sus acumulados"]
-    D --> E["Tabla completa y tarjetas con los totales"]
-    D --> F["Reproductor por episodios"]
-    F --> G["Gráfica y sumas parciales del episodio seleccionado"]
-```
-
-Las tarjetas muestran los totales del escenario completo. Al detener el reproductor en un episodio intermedio, la gráfica y las sumas parciales permiten observar cómo se llegó a esos totales. El estudiante puede detenerse en el tercer episodio, predecir el siguiente sumando y comprobar su respuesta al avanzar.
-
-## 6.2. Fragmento esencial de código
-
-La función `simularBloqueos`, definida en `model.mjs`, recibe las entradas ya validadas. Los parámetros `b` y `M` se expresan en centésimas de minuto y `n` indica la cantidad de episodios. En cada iteración se guarda una fila con el número de episodio, las tres duraciones individuales y los tres tiempos acumulados.
-
-```javascript
-export function simularBloqueos(b, n, M) {
-  let f = 0, p = 0, t = 0;
-  const filas = [];
-
-  for (let i = 1; i <= n; i++) {
-    const d = b * 2 ** (i - 1);
-    const c = Math.min(d, M);
-
-    f += b;
-    p += d;
-    t += c;
-
-    filas.push([i, b, d, c, f, p, t]);
-  }
-
-  return {
-    filas,
-    teorico: b * (2 ** n - 1),
-    alcanza: filas.find(r => r[3] === M)?.[0] ?? null,
-    recorta: filas.find(r => r[2] > M)?.[0] ?? null
-  };
-}
-```
-
-La instrucción `p += d` implementa la sumatoria progresiva: añade la duración del episodio actual al tiempo acumulado hasta el episodio anterior. Por su parte, `t += c` incorpora la duración después de aplicar el tope. El campo `teorico` calcula $b(2^n-1)$ para contrastar la suma obtenida por iteración con la identidad geométrica.
-
-Los campos `alcanza` y `recorta` distinguen dos situaciones. `alcanza` identifica el primer episodio cuya duración limitada es igual a $M$. `recorta` identifica el primero cuya duración progresiva habría superado $M$. Si la situación correspondiente no ocurre, el campo devuelve `null`.
-
-Por ejemplo, para representar **1 minuto inicial, 4 episodios y un máximo de 5 minutos**, la llamada al módulo utiliza `simularBloqueos(100, 4, 500)`. Su última fila es:
-
-```text
-[4, 100, 800, 500, 400, 1500, 1200]
-```
-
-El primer valor identifica el cuarto episodio. Los tres siguientes indican que ese bloqueo dura **1, 8 y 5 minutos**, respectivamente. Los tres últimos representan los **acumulados de 4, 15 y 12 minutos** que muestra la interfaz.
-
-## 6.3. Procedimiento de reproducción
-
-1. Extraer el paquete del simulador y abrir `Simulador_EDI.html` en un navegador. En la sección **Empieza aquí**, observar la secuencia de siete bloqueos por duplicación. El séptimo bloqueo dura 64 minutos y el tiempo acumulado llega a 127 minutos.
-
-2. Entrar en **Simulador** e introducir $b=1$ minuto, $n=4$ episodios y $M=5$ minutos. Pulsar **Comparar políticas**, reiniciar el reproductor y avanzar hasta el tercer episodio. Las políticas progresiva y con tope llevan el mismo acumulado: $1+2+4=7$ minutos.
-
-3. Antes de avanzar, predecir cuánto añadirá el cuarto bloqueo. Al reproducirlo, la política progresiva suma 8 minutos y llega a 15. La política con tope suma 5 minutos y llega a 12. Los 3 minutos de diferencia entre los acumulados proceden del recorte aplicado a ese cuarto episodio.
-
-4. Abrir **Inducción guiada** y pasar del ejemplo al caso general. El primer episodio cumple $T_p(1)=b$. Si los primeros $k$ episodios acumulan $b(2^k-1)$, el episodio $k+1$ aporta $b\,2^k$. Al elegir ese término se completa el paso inductivo:
+La identidad geométrica sin tope deja de describir el acumulado limitado desde el primer recorte. Para contrastar esta segunda política se utilizó una expresión por tramos. Si q es el número de términos geométricos que no superan M, incluyendo un eventual término igual a M, se obtiene:
 
 $$
-T_p(k+1)=b(2^k-1)+b\,2^k=b(2^{k+1}-1).
+q = \min\left(n,\,1+\left\lfloor\log_2(M/b)\right\rfloor\right)
 $$
 
-## 6.4. Casos normales y casos límite
+$$
+T_m(n) = b(2^{q} - 1) + (n-q)M
+$$
 
-En cada ensayo se utilizaron las mismas entradas para las tres políticas. La tabla presenta cinco casos del verificador. Los resultados corresponden al **tiempo acumulado al finalizar el último episodio**, expresado en minutos.
+Con b = 1, n = 4 y M = 5, se tiene q = 3. Los tres términos iniciales suman 7 y el término restante aporta 5: Tₘ(4) = 1(2³ − 1) + (4 − 3)5 = 12 minutos.
 
-**Tabla VI.1. Acumulados por política en cinco escenarios de prueba**
+## 7.5. Análisis de casos normales y casos límite.
 
-| Caso | Duración inicial $b$ (min) | Episodios $n$ | Máximo $M$ (min) | Fija (min) | Progresiva (min) | Con tope (min) |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Escenario principal | 1 | 4 | 5 | 4 | 15 | 12 |
-| Un solo episodio | 1 | 1 | 5 | 1 | 1 | 1 |
-| Máximo igual a la duración inicial | 2 | 4 | 2 | 8 | 30 | 8 |
-| Duración decimal | 0,5 | 3 | 1 | 1,5 | 3,5 | 2,5 |
-| Máximo alcanzado exactamente | 1 | 4 | 4 | 4 | 15 | 11 |
+Los siete escenarios válidos de la prueba automatizada produjeron los acumulados previstos en la tabla V. El escenario E1 corresponde al caso principal. En cada configuración se conservaron b y n para las tres políticas.
 
-El último caso muestra por qué se registran por separado el primer alcance y el primer recorte. En el tercer episodio, la duración prevista es de 4 minutos y coincide con el máximo. En el cuarto, la duplicación produciría 8 minutos y el simulador aplica el límite de 4. Por eso, la secuencia limitada es $1,2,4,4$ y su acumulado es **11 minutos**.
+***Tabla V. Acumulados finales de los siete escenarios válidos en minutos***
 
-## 6.5. Evidencias de ejecución y registro
+| Caso y entradas en minutos | Fija | Duplicación | Con tope |
+| --- | --- | --- | --- |
+| E1<br> b=1; n=4; M=5 | 4 | 15 | 12 |
+| E2<br> b=1; n=1; M=5 | 1 | 1 | 1 |
+| E3<br> b=2; n=4; M=2 | 8 | 30 | 8 |
+| E4<br> b=0,5; n=3; M=1 | 1,5 | 3,5 | 2,5 |
+| E5<br> b=1; n=4; M=4 | 4 | 15 | 11 |
+| E6<br> b=1; n=4; M=20 | 4 | 15 | 15 |
+| E7<br> b=10 000; n=30; M=10 000 | 300 000 | 10 737 418 230 000 | 300 000 |
 
-Las pruebas automatizadas se ejecutan desde la carpeta `codigo` con el siguiente comando:
+E2 comprobó que con un solo episodio las tres políticas coinciden. En E3, M = b hizo que la política limitada coincidiera con la fija en los cuatro episodios. En E4, las duraciones limitadas fueron 0,5; 1; 1 y sumaron 2,5 minutos. E5 separó el máximo alcanzado en el tercer episodio del primer recorte en el cuarto. En E6, el máximo de 20 minutos no modificó ninguna duración.
 
-```bash
-node tests/verify.mjs
-```
+E7 utilizó b = M = 10 000 minutos y n = 30. Su total progresivo fue 10 737 418 230 000 minutos, mientras que las políticas fija y limitada acumularon 300 000. Estos valores verifican un extremo admitido por la interfaz; no constituyen tiempos de bloqueo recomendados para un sistema real.
 
-La ejecución reprodujo los resultados registrados en `tests/verification-results.json`. Los **siete escenarios válidos** coincidieron con los totales esperados y el validador identificó las **seis entradas inválidas**. Entre ellas se encontraban una duración inicial de cero, una cantidad fraccionaria de episodios y un máximo inferior a la duración inicial.
+## 7.6. Verificación del simulador y evidencias de ejecución.
 
-El barrido automatizado completó **720 ejecuciones** y generó **11 160 filas**. En cada fila se contrastaron los tres acumulados con valores calculados de forma independiente, lo que produjo **33 480 comparaciones sin discrepancias**. Las pruebas respaldan el cálculo del programa en los escenarios evaluados. La demostración por inducción justifica la identidad geométrica para cualquier número entero positivo de episodios.
+La verificación comparó los tres acumulados de cada fila con valores esperados calculados mediante expresiones independientes. Para la política fija se utilizó nb; para la progresiva, b(2ⁿ − 1); para la limitada, la expresión por tramos del apartado 7.4. Los resultados esperados se evaluaron con enteros BigInt y se contrastaron exactamente en centésimas de minuto. Esta comprobación corresponde a la verificación de la implementación, en el sentido metodológico de Sargent (2013) \[14\].
 
-Para conservar la evidencia de un escenario desde la interfaz, se selecciona el último episodio del reproductor y se abre **Resultados y pruebas**. El archivo **CSV** guarda las filas de la tabla y el **SVG** conserva la gráfica hasta el episodio seleccionado. Al ejecutar la verificación antes de exportar el **JSON**, también quedan registrados los resultados de las pruebas.
+La batería sistemática combinó cuatro duraciones iniciales de 1, 50, 100 y 275 centésimas; seis factores para establecer M, iguales a 1; 1,5; 2; 3; 5 y 16; y n entre 1 y 30. Se ejecutaron 4 × 6 × 30 = 720 combinaciones de prueba. El máximo se redondeó a una centésima cuando fue necesario.
+
+Las 720 ejecuciones corresponden a 690 ternas distintas (b, n, M). Con b = 0,01 min, los factores 1,5 y 2 generan el mismo máximo M = 0,02 min después del redondeo. Esto repite una configuración para cada uno de los 30 valores de n. Las repeticiones se incluyen en el total de ejecuciones, pero no amplían la cantidad de entradas distintas examinadas.
+
+***Tabla VI. Resumen de la verificación sistemática***
+
+| **Indicador**                            | **Resultado** |
+|------------------------------------------|---------------|
+| Ejecuciones de combinaciones de entrada  | 720           |
+| Ternas distintas de entrada              | 690           |
+| Filas revisadas en las 720 ejecuciones   | 11 160        |
+| Contrastes de acumulados (tres por fila) | 33 480        |
+| Diferencias detectadas                   | 0             |
+
+La cantidad de filas fue 4 × 6 × (1 + 2 + … + 30) = 11 160. Al contrastar tres acumulados por fila se obtuvieron 33 480 comparaciones. También se comprobaron los siete escenarios válidos de la tabla V y seis entradas inválidas. Todas las pruebas previstas se superaron; ello respalda los casos examinados y no equivale a una prueba exhaustiva de todos los valores admitidos.
+
+***Tabla VII. Entradas inválidas y respuesta esperada del formulario***
+
+| **Entrada modificada**   | **Motivo de rechazo**                 | **Resultado** |
+|--------------------------|---------------------------------------|---------------|
+| b = 0; n = 4; M = 5      | Duración inicial fuera del dominio    | Rechazada     |
+| b = 1; n = 1,5; M = 5    | Número de episodios no entero         | Rechazada     |
+| b = 1; n = 31; M = 5     | Número de episodios mayor que 30      | Rechazada     |
+| b = 2; n = 4; M = 1      | Máximo inferior a la duración inicial | Rechazada     |
+| b = 0,001; n = 4; M = 5  | Más de dos decimales                  | Rechazada     |
+| b = 1; n = 4; M = 10 001 | Máximo fuera del límite admitido      | Rechazada     |
+
+En la interfaz, una entrada modificada oculta los resultados anteriores hasta ejecutar una nueva comparación. Cuando se rechaza un campo, se muestra el motivo junto a él. Este comportamiento evita interpretar los totales de una configuración anterior como si correspondieran a los nuevos valores.
+
+![Figura 2. Captura de ejecución del escenario principal. Se muestran b = 1, n = 4, M = 5 y los totales de 4, 15 y 12 minutos.](imagenes/image4.png)
+
+*Figura 2. Captura de ejecución del escenario principal. Se muestran b = 1, n = 4, M = 5 y los totales de 4, 15 y 12 minutos.*
+
+![Figura 3. Captura del resultado de la verificación ejecutada en el navegador. La revisión sistemática finaliza sin diferencias.](imagenes/image5.png)
+
+*Figura 3. Captura del resultado de la verificación ejecutada en el navegador. La revisión sistemática finaliza sin diferencias.*
+
+La portada presenta una traza complementaria de siete episodios para una misma IP ficticia. Sus duraciones son 1, 2, 4, 8, 16, 32 y 64 minutos, y el total progresivo es 127. Se trata de un ejemplo distinto del caso principal de cuatro episodios. La consola solo representa el cálculo: el comando visible no se ejecuta ni se leen registros de un servidor.
+
+## 7.7. Análisis de complejidad y escalabilidad.
+
+La función de cálculo recorre los n episodios una sola vez y realiza un número constante de operaciones aritméticas por iteración. Bajo el modelo de costo unitario y dentro del rango numérico admitido, su tiempo es O(n). La tabla conserva n filas con una cantidad fija de valores, por lo que la memoria también es O(n). Si solo se requirieran los totales y no las filas, bastarían los acumuladores y memoria O(1).
+
+La identidad progresiva requiere O(1) operaciones aritméticas bajo precisión fija. Esta descripción no supone que la aritmética con enteros de tamaño ilimitado tenga costo constante. En la interfaz, reconstruir la tabla y la gráfica exige O(n) trabajo por actualización; reproducir los n pasos con reconstrucción en cada paso puede acumular O(n²) trabajo de representación. No se midieron tiempos de ejecución para afirmar un rendimiento empírico.
+
+En la exploración b = 1, n = 30 y M = 16, los totales fueron 30, 1 073 741 823 y 431 minutos. El máximo se alcanzó exactamente en el episodio 5 y el primer recorte ocurrió en el 6. Desde ese momento, cada episodio limitado añadió 16 minutos. Por eso el acumulado limitado creció con incremento constante, mientras que el progresivo siguió creciendo geométricamente.
+
+![Figura 4. Acumulados de b = 1, n = 30 y M = 16 en escala logarítmica. La escala permite comparar magnitudes muy diferentes sin alterar sus valores.](imagenes/image3.png)
+
+***Figura 4. Acumulados de b = 1, n = 30 y M = 16 en escala logarítmica. La escala permite comparar magnitudes muy diferentes sin alterar sus valores.***
+
+Las duraciones se almacenan en centésimas enteras para evitar la acumulación de errores al sumar decimales. El mayor total progresivo permitido, 1 073 741 823 000 000 centésimas. La generalización matemática puede plantearse para cualquier n positivo, pero ampliar el límite informático requiere revisar la representación numérica y el costo de mostrar las filas.
+
+# VIII. Discusión. 
+
+## 8.1. Interpretación y utilidad de los resultados.
+
+La comparación permite localizar la causa de una diferencia entre acumulados. En el caso principal, las dos políticas progresivas tenían 7 minutos antes del cuarto bloqueo; la diferencia final se originó al añadir 8 o 5 minutos. El simulador hace visible esa relación al presentar las duraciones, los acumulados y la reproducción de los sumandos con los mismos datos.
+
+El resultado también permite distinguir el valor de un término del valor de la suma. En la consola de siete episodios, el último bloqueo dura 64 minutos y el total es 127; utilizar 64 como respuesta al tiempo acumulado omite los seis episodios anteriores. Esta distinción es el vínculo entre la aplicación informática y la identidad de sumatoria que se demuestra por inducción.
+
+La utilidad pedagógica del recurso reside en ofrecer una actividad reproducible de predicción, comprobación y justificación. Por ejemplo, el estudiante puede predecir qué cambia al sustituir M = 5 por M = 4 y después explicar por qué el total limitado pasa de 12 a 11. Esa posibilidad de uso está implementada; su efecto en el aprendizaje todavía debe medirse con estudiantes.
+
+## 8.2. Comparación del modelo con la bibliografía y herramientas reales.
+
+La configuración oficial de Fail2ban contempla el aumento de la duración mediante historial de bloqueos, un máximo configurable y reglas expresadas por fórmulas o multiplicadores. También incluye parámetros de detección como maxretry y findtime, además de un componente temporal aleatorio opcional \[5\]. El simulador conserva únicamente tres reglas de duración y fija una razón de duplicación igual a dos. Por tanto, permite analizar sus sumas, pero no reproduce toda la detección ni la operación de Fail2ban.
+
+Los intentos de autenticación y la fuerza bruta pertenecen al contexto del problema \[3\], \[4\]. Sin embargo, el presente modelo comienza después de la activación del bloqueo y no calcula intentos rechazados, accesos evitados ni ataques distribuidos. El trabajo de Javed y Paxson \[9\] aborda precisamente un escenario de detección distribuida que queda fuera de esta simulación de una sola IP.
+
+Stylianides, Stylianides y Philippou (2007) identificaron dificultades relacionadas con el caso base y con el significado del paso inductivo para un k arbitrario \[8\]. La actividad guiada del recurso permite trabajar esas diferencias al pedir el término del episodio k + 1. Esta relación orienta el diseño de la actividad; no demuestra que las dificultades se hayan superado en los usuarios.
+
+Sorva, Karavirta y Malmi (2013) revisan sistemas de visualización de programas para principiantes y examinan la participación del estudiante en ese tipo de recursos \[13\]. En SUMA Lab, esa participación se concreta en modificar entradas, predecir un término y justificar una respuesta. La evidencia presentada aquí corresponde a la ejecución del modelo y a sus controles; no incluye una evaluación comparativa de aprendizaje.
+
+## 8.3. Limitaciones del modelo y posibles errores de interpretación.
+
+El modelo es determinista y estudia una sola secuencia de bloqueos. No incorpora tráfico real, simultaneidad entre IP, umbrales de detección, intervalos entre episodios ni cambios de comportamiento. En consecuencia, un tiempo acumulado mayor no permite concluir que una regla sea más segura o conveniente para un servicio en producción.
+
+El máximo M limita cada duración, mientras que n determina cuántas duraciones se suman. Confundir ambos niveles puede llevar a considerar erróneo un total superior a M. Asimismo, comprobar varios valores de n no sustituye la demostración por inducción. La igualdad para todo entero positivo depende del caso base y del paso para un entero arbitrario, no de la cantidad de ejemplos calculados.
+
+La batería de pruebas no cubre todas las entradas posibles. Además, las 720 ejecuciones contienen repeticiones debidas al redondeo, como se precisa en el apartado 7.6. Las pruebas revisan acumulados de filas y escenarios seleccionados; no establecen la ausencia de cualquier defecto de interfaz. El límite de 30 episodios y la precisión de dos decimales delimitan el alcance informático de la versión evaluada.
+
+## 8.4. Propuestas de mejora y ampliaciones del simulador.
+
+Una mejora inmediata de la verificación consiste en elegir máximos directamente como centésimas enteras y eliminar ternas repetidas. También conviene ampliar los casos alrededor de cada frontera: un máximo igual a b·2ⁱ⁻¹, otro una centésima menor y otro una centésima mayor. Así se examinarían de forma más dirigida los momentos de alcanzar y de recortar el máximo.
+
+Como ampliación matemática, puede incorporarse una razón r configurable y estudiar T(n) = b(rⁿ − 1)/(r − 1) para r ≠ 1, dejando T(n) = nb cuando r = 1. Esta opción exige revisar las reglas de precisión, las validaciones y las demostraciones; no forma parte de los resultados obtenidos en la versión actual.
+
+Para evaluar el aprendizaje se propone una aplicación posterior con estudiantes: una tarea inicial, uso del simulador y una tarea final que exija explicar el siguiente sumando y el paso inductivo. La comparación debería distinguir resultados numéricos de justificaciones matemáticas y describir participantes, criterios y limitaciones. También se propone actualizar solo los elementos modificados durante la reproducción para reducir el trabajo de representación al ampliar n.
 
 # IX. Conclusiones
 
-## 9.1. Conclusiones sobre el modelado de las políticas de bloqueo
+## 9.1. Conclusiones sobre el modelado de las políticas de bloqueo.
 
-El simulador permitió comparar la duración de cada bloqueo y el tiempo acumulado al aplicar las tres políticas con las mismas entradas. Con una duración inicial de 1 minuto, 4 episodios y un máximo de 5 minutos por episodio, se obtuvieron 4 minutos acumulados con la política fija, 15 con la progresiva y 12 con la progresiva con tope. La diferencia de 3 minutos entre las dos últimas se explica por el cuarto bloqueo: la duplicación produce 8 minutos y el tope reduce su duración a 5. Al cambiar el máximo a 4 minutos, se observó que el tercer episodio alcanzó exactamente ese valor y que el primer recorte ocurrió en el cuarto episodio.
+Se representaron las tres políticas mediante duraciones individuales y acumulados comparables. Con b = 1, n = 4 y M = 5, los resultados fueron 4, 15 y 12 minutos. El recorte del cuarto término de 8 a 5 explicó íntegramente la diferencia de 3 minutos entre las políticas progresivas. El caso M = 4 distinguió alcanzar el máximo en el tercer episodio de recortar por primera vez en el cuarto. Estos resultados responden al objetivo de modelar y comparar las reglas manteniendo las mismas entradas de duración inicial y cantidad de episodios.
 
-## 9.2. Conclusiones sobre la demostración por inducción matemática
+## 9.2. Conclusiones sobre la demostración por inducción matemática.
 
-La demostración por inducción estableció que, para una duración inicial $b>0$ y cualquier número entero de episodios $n\geq 1$, el tiempo acumulado bajo duplicación sin tope es $T_p(n)=b(2^n-1)$. El caso base corresponde al primer bloqueo, cuya duración es $b$. En el paso inductivo, el episodio $k+1$ añade $b\,2^k$ minutos al acumulado de los primeros $k$ episodios. La actividad guiada conecta este razonamiento con una acción que el estudiante puede seguir en la tabla: identificar el nuevo sumando y observar cómo cambia el total al avanzar un episodio. En la política con tope, a partir del primer recorte, cada bloqueo posterior aporta $M$ minutos al acumulado.
+La demostración por inducción justificó Tₚ(n) = b(2ⁿ − 1) para b \> 0 y todo entero n ≥ 1. El caso base coincide con el primer bloqueo y el paso inductivo añade b·2ᵏ al acumulado de los primeros k episodios. La actividad guiada vincula ese razonamiento con una actualización que puede seguirse en la tabla y en la reproducción. La identidad corresponde a la duplicación sin tope; desde el primer recorte, el acumulado limitado requiere considerar los términos M.
 
-## 9.3. Conclusiones sobre la verificación del simulador
+## 9.3. Conclusiones sobre la verificación del simulador.
 
-Los tiempos acumulados de los siete escenarios válidos coincidieron con los resultados esperados y el simulador rechazó las seis entradas inválidas. La verificación sistemática comprendió 720 ejecuciones, correspondientes a 690 combinaciones distintas de duración inicial, número de episodios y máximo por episodio. Las 33 480 comparaciones de tiempos acumulados coincidieron con los valores calculados de forma independiente. Estos resultados respaldan la implementación de las tres políticas en los casos examinados. Para determinar en qué medida la actividad guiada mejora la comprensión de la inducción matemática, se requiere una evaluación posterior con estudiantes.
+Los acumulados de los siete escenarios válidos coincidieron con los esperados y las seis entradas inválidas fueron rechazadas. La revisión sistemática completó 720 ejecuciones, que contienen 690 ternas distintas, y 33 480 contrastes de acumulados sin diferencias. Estos resultados respaldan la correspondencia del programa con las reglas matemáticas en los casos examinados y cumplen el objetivo de verificación. El recurso queda disponible para una actividad pedagógica reproducible; determinar su efecto en la comprensión de la inducción requiere una evaluación posterior con estudiantes.
 
-# XI. Anexos
-
-## Anexo A. Código del simulador y de las pruebas
-
-El archivo `Simulador_EDI.html` reúne la interfaz, los estilos y el programa de SUMA Lab v3 para su ejecución en un navegador. La versión editable separa el modelo matemático, la interacción con el usuario y las pruebas. Las rutas siguientes corresponden a la carpeta `codigo` del proyecto.
-
-| Archivo | Contenido |
-| --- | --- |
-| `dist/model.mjs` | Validación de entradas, cálculo de las tres políticas y verificación de los acumulados. |
-| `dist/app.mjs` | Interacción con el formulario, la tabla, la gráfica y el reproductor de episodios. |
-| `tests/verify.mjs` | Pruebas que pueden ejecutarse con Node.js. |
-| `tests/verification-results.json` | Registro de los resultados de la verificación. |
-
-### A.1. Módulo de cálculo y verificación
-
-La función `simularBloqueos` recibe la duración inicial `b` y el máximo `M` en centésimas de minuto. Cada fila contiene siete valores: el número de episodio, las tres duraciones individuales y los tres acumulados. El siguiente fragmento de `dist/model.mjs` muestra cómo se construyen las filas y cómo se calcula, de forma independiente, el valor esperado de la política con tope.
-
-```javascript
-export function simularBloqueos(b, n, M) {
-  let f = 0, p = 0, t = 0;
-  const filas = [];
-
-  for (let i = 1; i <= n; i++) {
-    const d = b * 2 ** (i - 1);
-    const c = Math.min(d, M);
-
-    f += b;
-    p += d;
-    t += c;
-    filas.push([i, b, d, c, f, p, t]);
-  }
-
-  return {
-    filas,
-    teorico: b * (2 ** n - 1),
-    alcanza: filas.find(r => r[3] === M)?.[0] ?? null,
-    recorta: filas.find(r => r[2] > M)?.[0] ?? null
-  };
-}
-
-export function esperadoLimitado(b, n, M) {
-  let q = 0;
-
-  while (q < n && BigInt(b) * 2n ** BigInt(q) <= BigInt(M)) {
-    q++;
-  }
-
-  return Number(
-    BigInt(b) * (2n ** BigInt(q) - 1n) + BigInt(n - q) * BigInt(M)
-  );
-}
-```
-
-La variable `q` cuenta los episodios cuya duración prevista todavía es menor o igual que el máximo. Esos episodios aportan la suma geométrica $b(2^q-1)$. Cada uno de los $n-q$ episodios restantes aporta $M$. Así se obtiene un valor de referencia que puede compararse con la suma calculada fila por fila.
-
-### A.2. Script de pruebas
-
-El archivo `tests/verify.mjs` comprueba la conversión a centésimas, el rechazo de entradas inválidas, los acumulados del escenario principal y la diferencia entre alcanzar el máximo y recortar una duración.
-
-```javascript
-import assert from 'node:assert/strict';
-import {
-  centimos,
-  validar,
-  simularBloqueos,
-  verificar
-} from '../dist/model.mjs';
-
-assert.equal(centimos('0,50'), 50);
-assert.equal(centimos('10000.00'), 1000000);
-
-for (const invalid of ['', '-1', '0', '0.001', '1e2', 'Infinity', '10000.01']) {
-  assert.equal(centimos(invalid), null);
-}
-
-assert.deepEqual(
-  simularBloqueos(100, 4, 500).filas.at(-1),
-  [4, 100, 800, 500, 400, 1500, 1200]
-);
-
-const exact = simularBloqueos(100, 4, 400);
-assert.equal(exact.alcanza, 3);
-assert.equal(exact.recorta, 4);
-
-assert.equal(Object.keys(validar('1', '1.5', '5').errores).length, 1);
-
-const result = verificar();
-assert.ok(result.ok, JSON.stringify(result.fallos));
-assert.equal(result.configuraciones, 720);
-assert.equal(result.filas, 11160);
-assert.equal(result.controles, 33480);
-
-console.log(JSON.stringify(result, null, 2));
-```
-
-## Anexo B. Manual mínimo de uso
-
-1. Abrir `Simulador_EDI.html` en un navegador. En **Empieza aquí**, observar la secuencia de siete bloqueos. El último dura 64 minutos y los siete episodios acumulan 127 minutos.
-2. Entrar en **Simulador**. Introducir una duración inicial de **1 minuto**, **4 episodios** y un máximo de **5 minutos**. Pulsar **Comparar políticas**. Las tarjetas deben mostrar **4 minutos** para la política fija, **15** para la progresiva y **12** para la política con tope.
-3. Reiniciar el reproductor y avanzar hasta el tercer episodio. Las dos políticas progresivas acumulan 7 minutos. Antes de avanzar, predecir cuánto añadirá el cuarto bloqueo. La tabla permite comprobar que se añaden 8 minutos sin tope y 5 minutos con tope.
-4. Abrir **Inducción guiada** y resolver la predicción. En el paso inductivo, identificar el término que aporta el episodio $k+1$. Al añadir $b\,2^k$ al acumulado $b(2^k-1)$ se obtiene $b(2^{k+1}-1)$.
-5. En **Resultados y pruebas**, ejecutar la verificación. El archivo CSV conserva las filas de la simulación y el JSON permite guardar el escenario junto con el resultado de las pruebas. Para exportar la gráfica completa en SVG, seleccionar primero el último episodio del reproductor.
-
-## Anexo C. Salida de la ejecución de las pruebas
-
-Desde la carpeta `codigo`, con Node.js instalado, ejecutar:
-
-```bash
-node tests/verify.mjs
-```
-
-La salida obtenida coincidió con el registro `tests/verification-results.json`. La tabla XI.1 presenta los siete escenarios válidos. En las entradas, $b$ es la duración inicial, $n$ es la cantidad de episodios y $M$ es el máximo por episodio. Los tres resultados son tiempos acumulados en minutos.
-
-**Tabla XI.1. Resultados de los escenarios válidos de SUMA Lab v3**
-
-| $b$ (min) | $n$ | $M$ (min) | Fija (min) | Duplicación (min) | Con tope (min) |
-| ---: | ---: | ---: | ---: | ---: | ---: |
-| 1 | 4 | 5 | 4 | 15 | 12 |
-| 1 | 1 | 5 | 1 | 1 | 1 |
-| 2 | 4 | 2 | 8 | 30 | 8 |
-| 0,5 | 3 | 1 | 1,5 | 3,5 | 2,5 |
-| 1 | 4 | 4 | 4 | 15 | 11 |
-| 1 | 4 | 20 | 4 | 15 | 15 |
-| 10 000 | 30 | 10 000 | 300 000 | 10 737 418 230 000 | 300 000 |
-
-El validador identificó las seis entradas inválidas: duración inicial igual a cero, número fraccionario de episodios, 31 episodios, máximo inferior a la duración inicial, duración con tres decimales y máximo de 10 001 minutos.
-
-El barrido automatizado completó **720 ejecuciones**, generó **11 160 filas** y realizó **33 480 comparaciones** de acumulados. Todos los valores comparados coincidieron con sus referencias.
-
-## Anexo D. Distribución de tareas y evidencia de participación
-
-**Tabla XI.2. Participación individual y evidencia disponible**
-
-| Integrante | Actividades realizadas | Evidencia o versión |
-| --- | --- | --- |
-| Yessica Alvarez Hanampa | \_\_\_\_\_\_\_\_\_\_\_\_ | \_\_\_\_\_\_\_\_\_\_\_\_ |
-| Rebeca Milagros Cerdan Dongo | \_\_\_\_\_\_\_\_\_\_\_\_ | \_\_\_\_\_\_\_\_\_\_\_\_ |
-| Leydi Katerin Huamaní Huamaní | \_\_\_\_\_\_\_\_\_\_\_\_ | \_\_\_\_\_\_\_\_\_\_\_\_ |
-
-## Anexo E. Declaración de autoría y atribución
-
-El equipo presenta SUMA Lab v3 como material de la simulación. Los fragmentos de los apartados A.1 y A.2 proceden, respectivamente, de los archivos `dist/model.mjs` y `tests/verify.mjs` de la versión entregada. La guía de diseño del proyecto (`MASTER.md`) documenta la consulta de UX Pro Max para la presentación visual.
-
-Las fuentes del modelo matemático se citan en las referencias [6] y [7] del informe. La configuración de Fail2ban [5] sirve de referencia para el contexto informático. Se utilizó ChatGPT como apoyo en la revisión y organización del informe.

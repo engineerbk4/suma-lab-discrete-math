@@ -274,3 +274,148 @@ La demostración por inducción estableció que, para una duración inicial $b>0
 ## 9.3. Conclusiones sobre la verificación del simulador
 
 Los tiempos acumulados de los siete escenarios válidos coincidieron con los resultados esperados y el simulador rechazó las seis entradas inválidas. La verificación sistemática comprendió 720 ejecuciones, correspondientes a 690 combinaciones distintas de duración inicial, número de episodios y máximo por episodio. Las 33 480 comparaciones de tiempos acumulados coincidieron con los valores calculados de forma independiente. Estos resultados respaldan la implementación de las tres políticas en los casos examinados. Para determinar en qué medida la actividad guiada mejora la comprensión de la inducción matemática, se requiere una evaluación posterior con estudiantes.
+
+# XI. Anexos
+
+## Anexo A. Código del simulador y de las pruebas
+
+El archivo `Simulador_EDI.html` reúne la interfaz, los estilos y el programa de SUMA Lab v3 para su ejecución en un navegador. La versión editable separa el modelo matemático, la interacción con el usuario y las pruebas. Las rutas siguientes corresponden a la carpeta `codigo` del proyecto.
+
+| Archivo | Contenido |
+| --- | --- |
+| `dist/model.mjs` | Validación de entradas, cálculo de las tres políticas y verificación de los acumulados. |
+| `dist/app.mjs` | Interacción con el formulario, la tabla, la gráfica y el reproductor de episodios. |
+| `tests/verify.mjs` | Pruebas que pueden ejecutarse con Node.js. |
+| `tests/verification-results.json` | Registro de los resultados de la verificación. |
+
+### A.1. Módulo de cálculo y verificación
+
+La función `simularBloqueos` recibe la duración inicial `b` y el máximo `M` en centésimas de minuto. Cada fila contiene siete valores: el número de episodio, las tres duraciones individuales y los tres acumulados. El siguiente fragmento de `dist/model.mjs` muestra cómo se construyen las filas y cómo se calcula, de forma independiente, el valor esperado de la política con tope.
+
+```javascript
+export function simularBloqueos(b, n, M) {
+  let f = 0, p = 0, t = 0;
+  const filas = [];
+
+  for (let i = 1; i <= n; i++) {
+    const d = b * 2 ** (i - 1);
+    const c = Math.min(d, M);
+
+    f += b;
+    p += d;
+    t += c;
+    filas.push([i, b, d, c, f, p, t]);
+  }
+
+  return {
+    filas,
+    teorico: b * (2 ** n - 1),
+    alcanza: filas.find(r => r[3] === M)?.[0] ?? null,
+    recorta: filas.find(r => r[2] > M)?.[0] ?? null
+  };
+}
+
+export function esperadoLimitado(b, n, M) {
+  let q = 0;
+
+  while (q < n && BigInt(b) * 2n ** BigInt(q) <= BigInt(M)) {
+    q++;
+  }
+
+  return Number(
+    BigInt(b) * (2n ** BigInt(q) - 1n) + BigInt(n - q) * BigInt(M)
+  );
+}
+```
+
+La variable `q` cuenta los episodios cuya duración prevista todavía es menor o igual que el máximo. Esos episodios aportan la suma geométrica $b(2^q-1)$. Cada uno de los $n-q$ episodios restantes aporta $M$. Así se obtiene un valor de referencia que puede compararse con la suma calculada fila por fila.
+
+### A.2. Script de pruebas
+
+El archivo `tests/verify.mjs` comprueba la conversión a centésimas, el rechazo de entradas inválidas, los acumulados del escenario principal y la diferencia entre alcanzar el máximo y recortar una duración.
+
+```javascript
+import assert from 'node:assert/strict';
+import {
+  centimos,
+  validar,
+  simularBloqueos,
+  verificar
+} from '../dist/model.mjs';
+
+assert.equal(centimos('0,50'), 50);
+assert.equal(centimos('10000.00'), 1000000);
+
+for (const invalid of ['', '-1', '0', '0.001', '1e2', 'Infinity', '10000.01']) {
+  assert.equal(centimos(invalid), null);
+}
+
+assert.deepEqual(
+  simularBloqueos(100, 4, 500).filas.at(-1),
+  [4, 100, 800, 500, 400, 1500, 1200]
+);
+
+const exact = simularBloqueos(100, 4, 400);
+assert.equal(exact.alcanza, 3);
+assert.equal(exact.recorta, 4);
+
+assert.equal(Object.keys(validar('1', '1.5', '5').errores).length, 1);
+
+const result = verificar();
+assert.ok(result.ok, JSON.stringify(result.fallos));
+assert.equal(result.configuraciones, 720);
+assert.equal(result.filas, 11160);
+assert.equal(result.controles, 33480);
+
+console.log(JSON.stringify(result, null, 2));
+```
+
+## Anexo B. Manual mínimo de uso
+
+1. Abrir `Simulador_EDI.html` en un navegador. En **Empieza aquí**, observar la secuencia de siete bloqueos. El último dura 64 minutos y los siete episodios acumulan 127 minutos.
+2. Entrar en **Simulador**. Introducir una duración inicial de **1 minuto**, **4 episodios** y un máximo de **5 minutos**. Pulsar **Comparar políticas**. Las tarjetas deben mostrar **4 minutos** para la política fija, **15** para la progresiva y **12** para la política con tope.
+3. Reiniciar el reproductor y avanzar hasta el tercer episodio. Las dos políticas progresivas acumulan 7 minutos. Antes de avanzar, predecir cuánto añadirá el cuarto bloqueo. La tabla permite comprobar que se añaden 8 minutos sin tope y 5 minutos con tope.
+4. Abrir **Inducción guiada** y resolver la predicción. En el paso inductivo, identificar el término que aporta el episodio $k+1$. Al añadir $b\,2^k$ al acumulado $b(2^k-1)$ se obtiene $b(2^{k+1}-1)$.
+5. En **Resultados y pruebas**, ejecutar la verificación. El archivo CSV conserva las filas de la simulación y el JSON permite guardar el escenario junto con el resultado de las pruebas. Para exportar la gráfica completa en SVG, seleccionar primero el último episodio del reproductor.
+
+## Anexo C. Salida de la ejecución de las pruebas
+
+Desde la carpeta `codigo`, con Node.js instalado, ejecutar:
+
+```bash
+node tests/verify.mjs
+```
+
+La salida obtenida coincidió con el registro `tests/verification-results.json`. La tabla XI.1 presenta los siete escenarios válidos. En las entradas, $b$ es la duración inicial, $n$ es la cantidad de episodios y $M$ es el máximo por episodio. Los tres resultados son tiempos acumulados en minutos.
+
+**Tabla XI.1. Resultados de los escenarios válidos de SUMA Lab v3**
+
+| $b$ (min) | $n$ | $M$ (min) | Fija (min) | Duplicación (min) | Con tope (min) |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 1 | 4 | 5 | 4 | 15 | 12 |
+| 1 | 1 | 5 | 1 | 1 | 1 |
+| 2 | 4 | 2 | 8 | 30 | 8 |
+| 0,5 | 3 | 1 | 1,5 | 3,5 | 2,5 |
+| 1 | 4 | 4 | 4 | 15 | 11 |
+| 1 | 4 | 20 | 4 | 15 | 15 |
+| 10 000 | 30 | 10 000 | 300 000 | 10 737 418 230 000 | 300 000 |
+
+El validador identificó las seis entradas inválidas: duración inicial igual a cero, número fraccionario de episodios, 31 episodios, máximo inferior a la duración inicial, duración con tres decimales y máximo de 10 001 minutos.
+
+El barrido automatizado completó **720 ejecuciones**, generó **11 160 filas** y realizó **33 480 comparaciones** de acumulados. Todos los valores comparados coincidieron con sus referencias.
+
+## Anexo D. Distribución de tareas y evidencia de participación
+
+**Tabla XI.2. Participación individual y evidencia disponible**
+
+| Integrante | Actividades realizadas | Evidencia o versión |
+| --- | --- | --- |
+| Yessica Alvarez Hanampa | \_\_\_\_\_\_\_\_\_\_\_\_ | \_\_\_\_\_\_\_\_\_\_\_\_ |
+| Rebeca Milagros Cerdan Dongo | \_\_\_\_\_\_\_\_\_\_\_\_ | \_\_\_\_\_\_\_\_\_\_\_\_ |
+| Leydi Katerin Huamaní Huamaní | \_\_\_\_\_\_\_\_\_\_\_\_ | \_\_\_\_\_\_\_\_\_\_\_\_ |
+
+## Anexo E. Declaración de autoría y atribución
+
+El equipo presenta SUMA Lab v3 como material de la simulación. Los fragmentos de los apartados A.1 y A.2 proceden, respectivamente, de los archivos `dist/model.mjs` y `tests/verify.mjs` de la versión entregada. La guía de diseño del proyecto (`MASTER.md`) documenta la consulta de UX Pro Max para la presentación visual.
+
+Las fuentes del modelo matemático se citan en las referencias [6] y [7] del informe. La configuración de Fail2ban [5] sirve de referencia para el contexto informático. Se utilizó ChatGPT como apoyo en la revisión y organización del informe.

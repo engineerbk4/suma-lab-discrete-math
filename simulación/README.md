@@ -1,6 +1,6 @@
-SUMA LAB — SIMULADOR INTERACTIVO DE BLOQUEOS TEMPORALES DE IP
+# 🧮 SUMA Lab v3 — SIMULADOR INTERACTIVO DE BLOQUEOS TEMPORALES DE IP
 
-PARA EMPEZAR
+## PARA EMPEZAR
 1. Extrae el ZIP completo (clic derecho > Extraer todo).
 2. Abre Simulador_EDI.html con doble clic.
 3. Se abrirá en tu navegador; no necesitas instalar nada ni iniciar sesión.
